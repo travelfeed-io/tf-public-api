@@ -46,4 +46,9 @@ const postSchema = new Schema({
   app: { type: String },
 });
 
-module.exports = { postSchema };
+const preferencesSchema = new Schema({
+  user: { type: String, required: true },
+  apiKey: { type: String },
+});
+
+module.exports = { postSchema, preferencesSchema };

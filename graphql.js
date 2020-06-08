@@ -1,6 +1,6 @@
 const { ApolloServer } = require('apollo-server-lambda');
 const mongoose = require('mongoose');
-const { postSchema } = require('./models');
+const { postSchema, preferencesSchema } = require('./models');
 const typeDefs = require('./schema');
 const {
   getMongooseSelectionFromSelectedFields,
@@ -13,15 +13,21 @@ const uri = process.env.MONGO_URL;
 // Provide resolver functions for your schema fields
 const resolvers = {
   Query: {
-    post: (_, { permlink }, __, info) => {
-      const mongooseSelection = getMongooseSelectionFromSelectedFields(info);
-      const Post = conn.model('post', postSchema);
-      return Post.findOne({
-        permlink,
-      })
-        .select(mongooseSelection)
-        .lean()
-        .then((res) => res);
+    post: (_, { permlink }, { apiKey }, info) => {
+      if (!apiKey) return;
+      const Preferences = conn.model('preferences', preferencesSchema);
+      return Preferences.findOne({ apiKey }).then((res) => {
+        if (!res || !res.user) return;
+        const mongooseSelection = getMongooseSelectionFromSelectedFields(info);
+        const Post = conn.model('post', postSchema);
+        return Post.findOne({
+          'author.username': res.user,
+          permlink,
+        })
+          .select(mongooseSelection)
+          .lean()
+          .then((res) => res);
+      });
     },
     posts: (
       _,
@@ -40,61 +46,66 @@ const resolvers = {
         offset,
         limit,
       },
-      __,
+      { apiKey },
       info,
     ) => {
-      const mongooseSelection = getMongooseSelectionFromSelectedFields(info);
-      let query = {};
-      if (countryCodes) query['location.countryCode'] = countryCodes;
-      if (subdivisions) query['location.subdivision'] = subdivisions;
-      if (cities) query['location.city'] = cities;
-      if (locationBox)
-        query['location.coordinates'] = {
-          $geoWithin: {
-            $geometry: {
-              type: 'Polygon',
-              coordinates: [
-                [
-                  [locationBox[0], locationBox[1]],
-                  [locationBox[2], locationBox[1]],
-                  [locationBox[2], locationBox[3]],
-                  [locationBox[0], locationBox[3]],
-                  [locationBox[0], locationBox[1]],
+      if (!apiKey) return;
+      const Preferences = conn.model('preferences', preferencesSchema);
+      return Preferences.findOne({ apiKey }).then((res) => {
+        if (!res || !res.user) return;
+        const mongooseSelection = getMongooseSelectionFromSelectedFields(info);
+        let query = { 'author.username': res.user };
+        if (countryCodes) query['location.countryCode'] = countryCodes;
+        if (subdivisions) query['location.subdivision'] = subdivisions;
+        if (cities) query['location.city'] = cities;
+        if (locationBox)
+          query['location.coordinates'] = {
+            $geoWithin: {
+              $geometry: {
+                type: 'Polygon',
+                coordinates: [
+                  [
+                    [locationBox[0], locationBox[1]],
+                    [locationBox[2], locationBox[1]],
+                    [locationBox[2], locationBox[3]],
+                    [locationBox[0], locationBox[3]],
+                    [locationBox[0], locationBox[1]],
+                  ],
                 ],
-              ],
+              },
             },
-          },
-        };
-      if (tags) query.tags = tags;
-      if (communities) query['community.id'] = communities;
-      if (languages) query['community.lang'] = languages;
-      if (!includeTruffl) query.app = { $ne: 'truvvl' };
-      if (nearCoordinates)
-        query['location.coordinates'] = {
-          $near: {
-            $minDistance: 1,
-            $geometry: {
-              type: 'Point',
-              coordinates: [nearCoordinates[0], nearCoordinates[1]],
+          };
+        if (tags) query.tags = tags;
+        if (communities) query['community.id'] = communities;
+        if (languages) query['community.lang'] = languages;
+        if (!includeTruffl) query.app = { $ne: 'truvvl' };
+        if (nearCoordinates)
+          query['location.coordinates'] = {
+            $near: {
+              $minDistance: 1,
+              $geometry: {
+                type: 'Point',
+                coordinates: [nearCoordinates[0], nearCoordinates[1]],
+              },
             },
-          },
+          };
+        if (hasLocation) query['location.coordinates'] = { $ne: null };
+        let sortArgs = {
+          createdAt: -1,
         };
-      if (hasLocation) query['location.coordinates'] = { $ne: null };
-      let sortArgs = {
-        createdAt: -1,
-      };
-      if (orderby === 'oldest')
-        sortArgs = {
-          createdAt: 1,
-        };
-      const Post = conn.model('post', postSchema);
-      return Post.find(query)
-        .select(mongooseSelection)
-        .lean()
-        .sort(sortArgs)
-        .limit(limit || 10)
-        .skip(offset || 0)
-        .then((res) => res);
+        if (orderby === 'oldest')
+          sortArgs = {
+            createdAt: 1,
+          };
+        const Post = conn.model('post', postSchema);
+        return Post.find(query)
+          .select(mongooseSelection)
+          .lean()
+          .sort(sortArgs)
+          .limit(limit || 10)
+          .skip(offset || 0)
+          .then((res) => res);
+      });
     },
   },
 };
@@ -109,6 +120,9 @@ const server = new ApolloServer({
           endpoint: '/dev/graphql',
         },
   introspection: true,
+  context: ({ event }) => ({
+    apiKey: event.headers.authorization,
+  }),
 });
 
 exports.graphqlHandler = (event, context, callback) => {

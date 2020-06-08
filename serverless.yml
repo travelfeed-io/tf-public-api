@@ -6,6 +6,7 @@ provider:
   runtime: nodejs12.x
   environment:
     MONGO_URL: ${env:MONGO_URL}
+    NODE_ENV: ${env:NODE_ENV}
 functions:
   graphql:
     # this is formatted as <FILENAME>.<HANDLER>

@@ -102,9 +102,13 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  playground: {
-    endpoint: '/dev/graphql',
-  },
+  playground:
+    process.env.NODE_ENV === 'production'
+      ? true
+      : {
+          endpoint: '/dev/graphql',
+        },
+  introspection: true,
 });
 
 exports.graphqlHandler = (event, context, callback) => {

@@ -4,11 +4,16 @@
   "description": "Public API for TravelFeed",
   "main": "index.js",
   "scripts": {
+    "dev": "sls offline",
     "lint": "eslint '**/*.js' --fix",
     "prettier": "prettier --write '**/*.js'"
   },
   "author": "Julian Peters",
   "license": "MIT",
+  "dependencies": {
+    "apollo-server-lambda": "^2.14.2",
+    "graphql": "^15.1.0"
+  },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "eslint": "^7.2.0",
@@ -17,7 +22,8 @@
     "eslint-plugin-security": "^1.4.0",
     "husky": "^4.2.5",
     "lint-staged": "^10.2.9",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "serverless-offline": "^6.4.0"
   },
   "husky": {
     "hooks": {

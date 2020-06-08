@@ -22,3 +22,10 @@ functions:
 plugins:
   - serverless-offline
   - serverless-dotenv-plugin
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: api.travelfeed.io
+    basePath: ''
+    stage: ${self:provider.stage}

@@ -5,7 +5,6 @@ const typeDefs = gql`
   scalar Date
 
   type Query {
-    hello: String
     post(permlink: String!): Post
     posts(
       """

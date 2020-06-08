@@ -13,7 +13,6 @@ const uri = process.env.MONGO_URL;
 // Provide resolver functions for your schema fields
 const resolvers = {
   Query: {
-    hello: () => 'Hello world!',
     post: (_, { permlink }, __, info) => {
       const mongooseSelection = getMongooseSelectionFromSelectedFields(info);
       const Post = conn.model('post', postSchema);

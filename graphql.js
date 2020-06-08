@@ -124,6 +124,8 @@ exports.graphqlHandler = (event, context, callback) => {
       // With serverless, better to fail fast if not connected.
       bufferCommands: false, // Disable mongoose buffering
       bufferMaxEntries: 0, // and MongoDB driver buffering
+      useUnifiedTopology: true,
+      useNewUrlParser: true,
     });
 
     // `await`ing connection after assigning to the `conn` variable

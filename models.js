@@ -43,6 +43,7 @@ const postSchema = new Schema({
   readTime: { type: Number },
   community: { type: communitySchema },
   youtubeId: { type: String },
+  app: { type: String },
 });
 
 module.exports = { postSchema };

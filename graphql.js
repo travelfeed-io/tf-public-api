@@ -17,6 +17,75 @@ const resolvers = {
         permlink,
       }).then((res) => res);
     },
+    posts: (
+      _,
+      {
+        countryCodes,
+        subdivisions,
+        cities,
+        locationBox,
+        tags,
+        communities,
+        languages,
+        includeTruffl,
+        nearCoordinates,
+        hasLocation,
+        orderby,
+        offset,
+        limit,
+      },
+    ) => {
+      let query = {};
+      if (countryCodes) query['location.countryCode'] = countryCodes;
+      if (subdivisions) query['location.subdivision'] = subdivisions;
+      if (cities) query['location.city'] = cities;
+      if (locationBox)
+        query['location.coordinates'] = {
+          $geoWithin: {
+            $geometry: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [locationBox[0], locationBox[1]],
+                  [locationBox[2], locationBox[1]],
+                  [locationBox[2], locationBox[3]],
+                  [locationBox[0], locationBox[3]],
+                  [locationBox[0], locationBox[1]],
+                ],
+              ],
+            },
+          },
+        };
+      if (tags) query.tags = tags;
+      if (communities) query['community.id'] = communities;
+      if (languages) query['community.lang'] = languages;
+      if (!includeTruffl) query.app = { $ne: 'truvvl' };
+      if (nearCoordinates)
+        query['location.coordinates'] = {
+          $near: {
+            $minDistance: 1,
+            $geometry: {
+              type: 'Point',
+              coordinates: [nearCoordinates[0], nearCoordinates[1]],
+            },
+          },
+        };
+      if (hasLocation) query['location.coordinates'] = { $ne: null };
+      let sortArgs = {
+        createdAt: -1,
+      };
+      if (orderby === 'oldest')
+        sortArgs = {
+          createdAt: 1,
+        };
+      const Post = conn.model('post', postSchema);
+      return Post.find(query)
+        .lean()
+        .sort(sortArgs)
+        .limit(limit || 10)
+        .skip(offset || 0)
+        .then((res) => res);
+    },
   },
 };
 

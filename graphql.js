@@ -2,6 +2,9 @@ const { ApolloServer } = require('apollo-server-lambda');
 const mongoose = require('mongoose');
 const { postSchema } = require('./models');
 const typeDefs = require('./schema');
+const {
+  getMongooseSelectionFromSelectedFields,
+} = require('./helpers/getMongooseSelectionFromSelectedFields');
 
 let conn = null;
 
@@ -11,11 +14,15 @@ const uri = process.env.MONGO_URL;
 const resolvers = {
   Query: {
     hello: () => 'Hello world!',
-    post: (_, { permlink }) => {
+    post: (_, { permlink }, __, info) => {
+      const mongooseSelection = getMongooseSelectionFromSelectedFields(info);
       const Post = conn.model('post', postSchema);
       return Post.findOne({
         permlink,
-      }).then((res) => res);
+      })
+        .select(mongooseSelection)
+        .lean()
+        .then((res) => res);
     },
     posts: (
       _,
@@ -34,7 +41,10 @@ const resolvers = {
         offset,
         limit,
       },
+      __,
+      info,
     ) => {
+      const mongooseSelection = getMongooseSelectionFromSelectedFields(info);
       let query = {};
       if (countryCodes) query['location.countryCode'] = countryCodes;
       if (subdivisions) query['location.subdivision'] = subdivisions;
@@ -80,6 +90,7 @@ const resolvers = {
         };
       const Post = conn.model('post', postSchema);
       return Post.find(query)
+        .select(mongooseSelection)
         .lean()
         .sort(sortArgs)
         .limit(limit || 10)

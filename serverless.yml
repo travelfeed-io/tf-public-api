@@ -2,6 +2,8 @@ service: apollo-lambda
 provider:
   name: aws
   runtime: nodejs12.x
+  environment:
+    MONGO_URL: 'mongodb://localhost:27017/travelfeed'
 functions:
   graphql:
     # this is formatted as <FILENAME>.<HANDLER>

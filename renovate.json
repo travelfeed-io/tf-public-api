@@ -1,0 +1,16 @@
+{
+  "baseBranches": ["develop"],
+  "extends": ["config:base"],
+  "assignees": ["tiotdev"],
+  "prCreation": "not-pending",
+  "automerge": true,
+  "major": {
+    "automerge": false
+  },
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "updateTypes": ["major"]
+    }
+  ]
+}

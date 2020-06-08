@@ -1,27 +1,11 @@
-const { ApolloServer, gql } = require('apollo-server-lambda');
+const { ApolloServer } = require('apollo-server-lambda');
 const mongoose = require('mongoose');
 const { postSchema } = require('./models');
+const typeDefs = require('./schema');
 
 let conn = null;
 
 const uri = process.env.MONGO_URL;
-
-// Construct a schema, using GraphQL schema language
-const typeDefs = gql`
-  scalar Date
-
-  type Query {
-    hello: String
-    post(permlink: String!): Post
-  }
-
-  type Post {
-    createdAt: Date
-    permlink: String
-    title: String
-    body: String
-  }
-`;
 
 // Provide resolver functions for your schema fields
 const resolvers = {

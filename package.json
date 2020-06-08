@@ -14,7 +14,8 @@
   "dependencies": {
     "apollo-server-lambda": "^2.14.2",
     "graphql": "^15.1.0",
-    "mongoose": "^5.9.18"
+    "mongoose": "^5.9.18",
+    "mongoose-geojson-schema": "^2.1.5"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",

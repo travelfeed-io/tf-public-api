@@ -1,6 +1,6 @@
 # Public GraphQL API for TravelFeed
 
-Get your API key [in your TravelFeed Dashboard](https://travelfeed.io/dashboard) and use the API on https://api.travelfeed.io/graphql/. Send then API key as Authorization header.
+Get your API key [in your TravelFeed Dashboard](https://travelfeed.io/dashboard/settings) and use the API on https://api.travelfeed.io/graphql/. Send then API key as Authorization header.
 
 You can find a GraphQL playground at https://api.travelfeed.io/graphql and explore the schema.
 

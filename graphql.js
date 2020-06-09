@@ -121,9 +121,16 @@ const server = new ApolloServer({
         },
   introspection: true,
   context: ({ event }) => ({
-    apiKey: event.headers.authorization,
+    apiKey: event.headers.Authorization,
   }),
 });
+
+const serverOptions = {
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+};
 
 exports.graphqlHandler = (event, context, callback) => {
   // Make sure to add this so you can re-use `conn` between function calls.
@@ -148,7 +155,7 @@ exports.graphqlHandler = (event, context, callback) => {
     // `await`ing connection after assigning to the `conn` variable
     // to avoid multiple function calls creating new connections
     conn.then(() => {
-      server.createHandler()(event, context, callback);
+      server.createHandler(serverOptions)(event, context, callback);
     });
-  } else server.createHandler()(event, context, callback);
+  } else server.createHandler(serverOptions)(event, context, callback);
 };
